@@ -8,16 +8,22 @@ let pantallaActual = 0;
 // Variable de estado para controlar los textos 
 let estadoCocina = 0; 
 
-// Variables para imágenes y sonido 
+// Variables para imágenes, sonido y tipografías 
 let imagenes = [];
 let sonidoClick;
+let fuenteMenu;      
+let fuenteGeneral; 
 
 function preload() {
   // Cargamos las imágenes de fondo para cada pantalla 
   imagenes[0] = loadImage('menu.jpg');   
   imagenes[1] = loadImage('casa.jpg');   
-  imagenes[2] = loadImage('cocina.jpg'); 
-  imagenes[4] = loadImage('sotano.jpg'); 
+  imagenes[2] = loadImage('cocina.jpg');  
+  imagenes[4] = loadImage('sotano.jpg');  
+
+  // Cargamos las tipografías (Asegúrate de tener ambos archivos en tu proyecto)
+  fuenteMenu = loadFont("tipografia.ttf"); 
+  fuenteGeneral = loadFont("letrageneral.ttf"); // <--- Tipografía para el resto de textos y botones
 }
 
 function setup() {
@@ -29,12 +35,17 @@ function setup() {
 }
 
 function draw() {
-  background(20);
+  background(10);
   
   // Si hay imagen para la pantalla actual, se dibuja de fondo
   if (imagenes[pantallaActual]) {
     image(imagenes[pantallaActual], 0, 0, width, height);
   }
+
+  // Capa de atmósfera oscura sutil sobre la imagen para resaltar los textos de terror
+  noStroke();
+  fill(0, 75);
+  rect(width / 2, height / 2, width, height);
 
   // Mostramos el texto y los botones de la pantalla activa
   mostrarPantalla(pantallaActual);
@@ -49,7 +60,7 @@ function iniciarPantallas() {
   
   // PANTALLA 0: MENÚ / INICIO
   pantallas.push({
-    texto: "Una ciudad quedó abandonada después de la aparición de unas criaturas que detectan cualquier sonido. La protagonista Emma y su amigo Nicolás llevan días escondidos. Reciben por radio un mensaje: Hay un refugio al norte. Salgan antes del anochecer",
+    texto: "Una ciudad quedó abandonada después de la aparición de unas criaturas que detectan cualquier sonido. La protagonista Emma y su amigo Nicolás llevan días escondidos. Reciben por radio un mensaje: Hay un refugio al norte. Salgan antes del anochecer.",
     opciones: [
       { texto: "COMENZAR AVENTURA", siguiente: 1 }
     ]
@@ -81,9 +92,6 @@ function iniciarPantallas() {
       { texto: "Opción B: Salir por la puerta trasera", siguiente: 6 }
     ]
   });
-
-  
-
 }
 
 function mostrarPantalla(indice) {
@@ -109,61 +117,90 @@ function mostrarPantalla(indice) {
 }
 
 function dibujarCajaTexto(txt) {
-  fill(0, 220);
-  stroke(255, 180);
+  // Estética de terror: fondo oscuro semitransparente con tinte rojizo/grisáceo y borde sangriento sutil
+  fill(12, 10, 14, 225);
+  stroke(130, 25, 25, 200);
   strokeWeight(2);
   
-  // Caja de texto centrada
-  rect(width / 2, 125, 740, 170, 10);
+  // Caja de texto centrada y un poco más estilizada
+  rect(width / 2, 120, 720, 150, 6);
   
-  fill(255);
+  fill(235, 230, 230); // Color de texto blanco hueso
   noStroke();
-  textSize(13);
   
-  // Dibujamos el texto alineado arriba a la izquierda dentro de los márgenes de la caja
+  // Aplicamos la tipografía general para los textos de la historia
   push();
+  if (fuenteGeneral) {
+    textFont(fuenteGeneral); 
+  }
+  textSize(15); 
   textAlign(LEFT, TOP);
-  text(txt, 55, 55, 690, 140);
+  text(txt, 45, 52, 630, 130);
   pop();
 }
 
 function dibujarBotones(opciones) {
-  let yInicio = 250;
+  let yInicio = 230;
+  let bx = width / 2;
+  let bw = 460;
+  let bh = 38;
+
   for (let i = 0; i < opciones.length; i++) {
-    let bx = width / 2;
-    let by = yInicio + (i * 55);
+    let by = yInicio + (i * 50);
     
-    fill(40, 90, 160);
-    stroke(255);
-    strokeWeight(1);
-    rect(bx, by, 480, 40, 6);
+    // Detección de hover para cambiar el color del botón
+    let sobreBoton = (mouseX > bx - bw / 2 && mouseX < bx + bw / 2 && mouseY > by - bh / 2 && mouseY < by + bh / 2);
+
+    if (sobreBoton) {
+      fill(70, 18, 18, 240); // Rojo sangre oscuro al pasar el mouse
+      stroke(220, 50, 50);
+    } else {
+      fill(22, 18, 22, 210); // Fondo de botón oscuro normal
+      stroke(110, 30, 30, 180);
+    }
     
-    fill(255);
+    strokeWeight(1.5);
+    rect(bx, by, bw, bh, 4);
+    
+    fill(240);
     noStroke();
-    textSize(13);
+    
+    // Aplicamos tipografía diferenciada y tamaños ajustados
+    push();
+    if (pantallaActual === 0) {
+      if (fuenteMenu) textFont(fuenteMenu);
+      textSize(18); // Tamaño para el menú principal
+    } else {
+      if (fuenteGeneral) textFont(fuenteGeneral);
+      textSize(18); // <--- Tamaño agrandado a 18 para los botones de las demás pantallas
+    }
+    
     textAlign(CENTER, CENTER);
     text(opciones[i].texto, bx, by);
+    pop(); 
   }
 }
 
 function verificarClicks(indice) {
-  let yInicio = 250;
+  let yInicio = 230;
   let bx = width / 2;
+  let bw = 460;
+  let bh = 38;
 
   // Manejo de clics específico para la Cocina (índice 2)
   if (indice === 2) {
     if (estadoCocina === 0) {
       let by1 = yInicio;
-      if (mouseX > bx - 240 && mouseX < bx + 240 && mouseY > by1 - 20 && mouseY < by1 + 20) {
+      if (mouseX > bx - bw/2 && mouseX < bx + bw/2 && mouseY > by1 - bh/2 && mouseY < by1 + bh/2) {
         estadoCocina = 1; 
       }
-      let by2 = yInicio + 55;
-      if (mouseX > bx - 240 && mouseX < bx + 240 && mouseY > by2 - 20 && mouseY < by2 + 20) {
+      let by2 = yInicio + 50;
+      if (mouseX > bx - bw/2 && mouseX < bx + bw/2 && mouseY > by2 - bh/2 && mouseY < by2 + bh/2) {
         estadoCocina = 2; 
       }
     } else {
       let by = yInicio;
-      if (mouseX > bx - 240 && mouseX < bx + 240 && mouseY > by - 20 && mouseY < by + 20) {
+      if (mouseX > bx - bw/2 && mouseX < bx + bw/2 && mouseY > by - bh/2 && mouseY < by + bh/2) {
         pantallaActual = 4; 
         estadoCocina = 0;   
       }
@@ -171,9 +208,7 @@ function verificarClicks(indice) {
   } else {
     let opciones = pantallas[indice].opciones;
     for (let i = 0; i < opciones.length; i++) {
-      let by = yInicio + (i * 55);
-      let bw = 480;
-      let bh = 40;
+      let by = yInicio + (i * 50);
       
       if (mouseX > bx - bw / 2 && mouseX < bx + bw / 2 && mouseY > by - bh / 2 && mouseY < by + bh / 2) {
         pantallaActual = opciones[i].siguiente;
